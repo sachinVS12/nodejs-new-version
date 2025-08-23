@@ -40,6 +40,22 @@ const getUserByIdHandler = (req, res) => {
     res.end();
 }
 
+
+// Route handler for POST /api/users
+const createUserHnadler = (req, res) => {
+  let body ='';
+  // liste for data
+  req.on('data', (chunk)=>{
+    body += chunk.toString();
+  }); 
+  req.on('end', ()=>{
+    const newUser = JSON.parse(body);
+    users.push(newUser);
+    res.statusCode = 201;
+    res.write(JSON.stringify(newUser));
+  })  
+}
+
 //not found handler
 const notFoundhandler = (req, res) => {
   res.statusCode = 404;
@@ -48,35 +64,15 @@ const notFoundhandler = (req, res) => {
 }
 
 const server = createServer((req, res) =>{
-    logger
+    logger(req, res, () => {
    if(req.url ==='/api/users' && req.method === 'GET'){
-    res.setHeader('Content-Type', 'applicatio/json');
-    res.write(JSON.stringify(users));
-    res.end();
-    
+     getUserHandler(req, res);
    } else if( req.url.match(/\/api\/users\/([0-9]+)/) && req.method === 'GET'){
-    const id = req.url.split('/')[3];
-    const user= users.find((user) => user.id === parserInt(id));
-    if(user) {
-    res.setHeader('Content-Type', 'applicatio/json');
-    res.write(JSON.stringify(user));
-    res.end();
-    } else {
-    res.setHeader('Content-Type', 'applicatio/json');
-    res.statusCode = 404;
-    res.write(JSON.stringify({message: 'user not found'}));
-    res.end();
-    }
-     res.setHeader('Content-Type', 'applicatio/json');
-    res.write(JSON.stringify({id: 1, name: 'sachin'}));
-    res.end();
-   } else{ 
-     res.setHeader('Content-Type', 'applicatio/json');
-     res.statusCode = 404;
-    res.write(JSON.stringify({message: 'Route not found'}));
-    res.end();
-   }
-
+    getUserByIdHandler(req, res);  
+} else{
+    notFoundhandler(req, res);
+}
+});
 });
 
 server.listen(PORT, () => {
